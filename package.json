@@ -7,10 +7,10 @@
   "keywords": "hubot, hubot-scripts, Broadlink RM Mini3",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-broadlink-rm.git"
+    "url": "git://github.com/takjg/hubot-broadlink-rm.git"
   },
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-broadlink-rm/issues"
+    "url": "https://github.com/takjg/hubot-broadlink-rm/issues"
   },
   "dependencies": {
     "homebridge-broadlink-rm": "2.5.16"
