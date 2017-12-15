@@ -1,16 +1,16 @@
 {
   "name": "hubot-broadlink-rm",
   "description": "A hubot script to learn IR hex codes and to send them with Broadlink RM",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "author": "tak <tak.jaga@gmail.com>",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts, Broadlink RM Mini3",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-broadlink-rm.git"
+    "url": "git://github.com/takjg/hubot-broadlink-rm.git"
   },
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-broadlink-rm/issues"
+    "url": "https://github.com/takjg/hubot-broadlink-rm/issues"
   },
   "dependencies": {
     "homebridge-broadlink-rm": "2.5.16"
