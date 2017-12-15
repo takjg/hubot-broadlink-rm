@@ -12,7 +12,9 @@
   "bugs": {
     "url": "https://github.com/hubot-scripts/hubot-broadlink-rm/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "homebridge-broadlink-rm": "2.5.16"
+  },
   "peerDependencies": {
     "hubot": "2.x"
   },
