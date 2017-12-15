@@ -24,8 +24,112 @@
 #   tak <tak.jaga@gmail.com>
 
 module.exports = (robot) ->
-  robot.respond /hello/, (res) ->
-    res.reply "hello!"
+    robot.respond /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
+    robot.respond /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
+    robot.respond /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
+    robot.respond /delete\s+([a-z0-9:]+)$/i,              (res) -> delet  robot, res
+    robot.respond /list$/i,                               (res) -> list   robot, res
 
-  robot.hear /orly/, (res) ->
-    res.send "yarly"
+getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
+learnData = require 'homebridge-broadlink-rm/helpers/learnData'
+
+# Commands
+
+host = undefined  # mac or ip
+
+sendN = (robot, res) ->
+    keys = res.match[1].toLowerCase().split(/\s+/)
+    keys.shift()
+    repeat keys, (key, callback) ->
+        send robot, res, key, callback
+
+send = (robot, res, key, callback) ->
+    code = getCode robot, key
+    back = (msg) -> res.send msg ; callback()
+    if code
+        device = getDevice { host }
+        if device
+            buffer = new Buffer(code, 'hex')
+            device.sendData buffer
+            setTimeout (-> back "sent code of #{key}"), 1000
+        else
+            back 'device not found'
+    else
+        back "no such code #{key}"
+
+repeat = (a, f) ->
+    if a.length > 0
+        f a[0], ->
+            a.shift()
+            repeat a, f
+
+learn1 = (robot, res) ->
+    key = res.match[1].toLowerCase()
+    learn robot, res, key, (->)
+
+learnN = (robot, res) ->
+    key   = res.match[1].toLowerCase()
+    start = Number res.match[2]
+    stop  = Number res.match[3]
+    repeat [start .. stop], (n, callback) ->
+        learn robot, res, key + n, callback
+
+learn = (robot, res, key, callback) ->
+    code = undefined
+    read = (str) ->
+        m = str.match /Learn Code \(learned hex code: (\w+)\)/
+        code = m[1] if m
+    prompt = ->
+        res.send "#{key} ready"
+    set = ->
+        setCode robot, key, code
+        learnData.stop (->)
+        if code
+            res.send "#{key} learned #{code}"
+        else
+            res.send "#{key} failed to learn code"
+        callback()
+    learnData.start host, prompt, set, read, false
+
+delet = (robot, res) ->
+    key = res.match[1].toLowerCase()
+    deleteCode robot, key
+    res.send "deleted code of #{key}"
+
+list = (robot, res) ->
+    keys = getKeys robot
+    res.send keys.join('\n')
+
+# Persistence
+
+getCode = (robot, key) ->
+    robot.brain.get key
+
+setCode = (robot, key, code) ->
+    robot.brain.set key, code
+    addKey robot, key
+
+deleteCode = (robot, key) ->
+    robot.brain.remove key
+    deleteKey robot, key
+
+addKey = (robot, key) ->
+    keySet = getKeySet robot
+    keySet.add key
+    setKeySet robot, keySet
+
+deleteKey = (robot, key) ->
+    keySet = getKeySet robot
+    keySet.delete key
+    setKeySet robot, keySet
+
+getKeys = (robot) ->
+    str = robot.brain.get '_keys_'
+    if str then JSON.parse str else []
+
+getKeySet = (robot) ->
+    new Set(getKeys robot)
+
+setKeySet = (robot, keySet) ->
+    str = JSON.stringify(Array.from keySet)
+    robot.brain.set '_keys_', str
