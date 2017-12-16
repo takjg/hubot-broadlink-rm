@@ -25,7 +25,9 @@ user>> hubot learn light:on                    - Learns IR hex code and names it
 user>> hubot send light:on                     - Sends IR hex code of light:on.
 user>> hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
-user>> hubot leran aircon:warm 14-30           - Is also useful to learn many codes.
+user>> hubot leran aircon:warm 14-30           - Easy to learn many codes in a minute.
+user>> hubot list                              - Shows all name of codes.
+user>> hubot delete light:on                   - Deletes the code of <name>.
 ```
 
 ## NPM Module
