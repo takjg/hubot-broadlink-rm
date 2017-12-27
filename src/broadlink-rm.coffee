@@ -24,11 +24,11 @@
 #   tak <tak.jaga@gmail.com>
 
 module.exports = (robot) ->
-    robot.respond /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
-    robot.respond /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
-    robot.respond /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
-    robot.respond /delete\s+([a-z0-9:]+)$/i,              (res) -> delet  robot, res
-    robot.respond /list$/i,                               (res) -> list   robot, res
+    robot.respond  /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
+    robot.respond  /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
+    robot.respond  /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
+    robot.respond /delete\s+([a-z0-9:]+)$/i,               (res) -> delet  robot, res
+    robot.respond /list$/i,                                (res) -> list   robot, res
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
