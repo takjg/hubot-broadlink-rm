@@ -4,6 +4,8 @@ A hubot script to learn and send IR hex codes with Broadlink RM
 
 See [`src/broadlink-rm.coffee`](src/broadlink-rm.coffee) for full documentation.
 
+See [an example](https://scrapbox.io/smart-home) how to use the script with Slack, IFTTT, Google Home, and Amazon Echo.
+
 ## Installation
 
 In hubot project repo, run:
@@ -27,7 +29,9 @@ user>> hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 user>> hubot leran aircon:warm 14-30           - Easy to learn many codes in a minute.
 user>> hubot list                              - Shows all name of codes.
-user>> hubot delete light:on                   - Deletes the code of <name>.
+user>> hubot delete light:on                   - Deletes the code of light:on.
+user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
+user>> hubot set aircon:clean 123abc...        - Sets IR hex code of aircon:clean to 123abc... .
 ```
 
 ## NPM Module
