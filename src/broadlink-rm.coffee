@@ -40,6 +40,9 @@ host = undefined  # mac or ip
 sendN = (robot, res) ->
     keys = res.match[1].toLowerCase().split(/\s+/)
     keys.shift()
+    sendN_ robot, res, keys
+
+sendN_ = (robot, res, keys) ->
     repeat keys, (key, callback) ->
         send robot, res, key, callback
 
