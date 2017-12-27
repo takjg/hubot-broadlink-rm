@@ -9,6 +9,7 @@
 #   hubot send <name> ...     - Sends IR hex code of <name>.
 #   hubot list                - Shows all names of codes.
 #   hubot delete <name>       - Deletes code of <name>.
+#   hubot get <name>          - Shows IR hex code of <name>.
 #
 # Examples:
 #   hubot learn light:on                    - Learns IR hex code and names it light:on.
@@ -16,6 +17,7 @@
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Is also useful to learn many codes of air conditioner.
+#   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #
 # Notes:
 #   Tested with Broadlink RM Mini3.
@@ -27,6 +29,7 @@ module.exports = (robot) ->
     robot.respond  /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
     robot.respond  /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
     robot.respond  /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
+    robot.respond    /get\s+([a-z0-9:]+)$/i,               (res) -> get    robot, res
     robot.respond /delete\s+([a-z0-9:]+)$/i,               (res) -> delet  robot, res
     robot.respond /list$/i,                                (res) -> list   robot, res
 
@@ -93,6 +96,11 @@ learn = (robot, res, key, callback) ->
             res.send "#{key} failed to learn code"
         callback()
     learnData.start host, prompt, set, read, false
+
+get = (robot, res) ->
+    key  = res.match[1].toLowerCase()
+    code = getCode robot, key
+    res.send "#{key} = #{code}"
 
 delet = (robot, res) ->
     key = res.match[1].toLowerCase()
