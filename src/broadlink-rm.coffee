@@ -9,6 +9,8 @@
 #   hubot send <name> ...     - Sends IR hex code of <name>.
 #   hubot list                - Shows all names of codes.
 #   hubot delete <name>       - Deletes code of <name>.
+#   hubot get <name>          - Shows IR hex code of <name>.
+#   hubot set <name> <code>   - Sets IR hex code of <name> to <code>.
 #
 # Examples:
 #   hubot learn light:on                    - Learns IR hex code and names it light:on.
@@ -16,6 +18,8 @@
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Is also useful to learn many codes of air conditioner.
+#   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
+#   hubot set aircon:clean 123abc...        - Sets IR hex code of aircon:clean to 123abc... .
 #
 # Notes:
 #   Tested with Broadlink RM Mini3.
@@ -24,11 +28,13 @@
 #   tak <tak.jaga@gmail.com>
 
 module.exports = (robot) ->
-    robot.respond /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
-    robot.respond /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
-    robot.respond /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
-    robot.respond /delete\s+([a-z0-9:]+)$/i,              (res) -> delet  robot, res
-    robot.respond /list$/i,                               (res) -> list   robot, res
+    robot.respond  /(send(\s+[a-z0-9:]+)+)$/i,             (res) -> sendN  robot, res
+    robot.respond  /learn\s+([a-z0-9:]+)$/i,               (res) -> learn1 robot, res
+    robot.respond  /learn\s+([a-z0-9:]+)\s+(\d+)-(\d+)$/i, (res) -> learnN robot, res
+    robot.respond    /get\s+([a-z0-9:]+)$/i,               (res) -> get    robot, res
+    robot.respond    /set\s+([a-z0-9:]+)\s+([0-9a-f]+)$/i, (res) -> set    robot, res
+    robot.respond /delete\s+([a-z0-9:]+)$/i,               (res) -> delet  robot, res
+    robot.respond /list$/i,                                (res) -> list   robot, res
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
@@ -40,6 +46,9 @@ host = undefined  # mac or ip
 sendN = (robot, res) ->
     keys = res.match[1].toLowerCase().split(/\s+/)
     keys.shift()
+    sendN_ robot, res, keys
+
+sendN_ = (robot, res, keys) ->
     repeat keys, (key, callback) ->
         send robot, res, key, callback
 
@@ -81,15 +90,29 @@ learn = (robot, res, key, callback) ->
         code = m[1] if m
     prompt = ->
         res.send "#{key} ready"
-    set = ->
+    setCd = ->
         setCode robot, key, code
         learnData.stop (->)
-        if code
-            res.send "#{key} learned #{code}"
-        else
-            res.send "#{key} failed to learn code"
+        resLearned res, key, code
         callback()
-    learnData.start host, prompt, set, read, false
+    learnData.start host, prompt, setCd, read, false
+
+resLearned = (res, key, code) ->
+    if code
+        res.send "#{key} learned #{code}"
+    else
+        res.send "#{key} failed to learn code"
+
+get = (robot, res) ->
+    key  = res.match[1].toLowerCase()
+    code = getCode robot, key
+    res.send "#{key} = #{code}"
+
+set = (robot, res) ->
+    key  = res.match[1].toLowerCase()
+    code = res.match[2].toLowerCase()
+    setCode robot, key, code
+    resLearned res, key, code
 
 delet = (robot, res) ->
     key = res.match[1].toLowerCase()
