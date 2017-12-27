@@ -87,15 +87,18 @@ learn = (robot, res, key, callback) ->
         code = m[1] if m
     prompt = ->
         res.send "#{key} ready"
-    set = ->
+    setCd = ->
         setCode robot, key, code
         learnData.stop (->)
-        if code
-            res.send "#{key} learned #{code}"
-        else
-            res.send "#{key} failed to learn code"
+        resLearned res, key, code
         callback()
-    learnData.start host, prompt, set, read, false
+    learnData.start host, prompt, setCd, read, false
+
+resLearned = (res, key, code) ->
+    if code
+        res.send "#{key} learned #{code}"
+    else
+        res.send "#{key} failed to learn code"
 
 get = (robot, res) ->
     key  = res.match[1].toLowerCase()
