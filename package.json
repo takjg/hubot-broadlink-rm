@@ -1,7 +1,7 @@
 {
   "name": "hubot-broadlink-rm",
   "description": "A hubot script to learn IR hex codes and to send them with Broadlink RM",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "tak <tak.jaga@gmail.com>",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts, broadlink, rm mini 3",
