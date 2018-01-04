@@ -39,6 +39,8 @@
 # Author:
 #   tak <tak.jaga@gmail.com>
 
+'use strict'
+
 module.exports = (robot) ->
     name    = '[0-9a-z:]+'
     at      = '@' + name
