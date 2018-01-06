@@ -21,7 +21,7 @@
 #   hubot send light:on                     - Sends IR hex code of light:on.
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
-#   hubot leran aircon:warm 14-30           - Is also useful to learn many codes of air conditioner.
+#   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
 #   hubot set @kitchen 192.168.1.23         - Names IP address 192.168.1.23 kitchen.
