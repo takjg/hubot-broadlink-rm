@@ -5,16 +5,21 @@
 #   None
 #
 # Commands:
-#   hubot learn <name> [n-m] [@<room>] - Learns IR hex code and names it <name> at <room>.
-#   hubot send <name>[@<room>] ...     - Sends IR hex code of <name> to <room>.
-#   hubot list                         - Shows all names of codes and rooms.
-#   hubot delete <name>                - Deletes code of <name>.
-#   hubot delete @<room>               - Deletes MAC or IP address of <room>.
-#   hubot get <name>                   - Shows IR hex code of <name>.
-#   hubot get @<room>                  - Shows MAC or IP address of <name>.
-#   hubot set <name> <code>            - Names IR hex <code> <name>.
-#   hubot set @<room> [<MAC>|<IP>]     - Names MAC or IP address <room>.
-#   hubot help                         - Shows usage.
+#   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
+#   hubot send <code>[@<room>] ...    - Sends IR hex <code> to <room>.
+#   hubot list    - Shows all codes and rooms.
+#   hubot delete <code>    - Deletes IR hex <code>.
+#   hubot delete @<room>    - Deletes <room>.
+#   hubot get <code>    - Shows IR hex code of <code>.
+#   hubot get @<room>    - Shows MAC or IP address of <room>.
+#   hubot set <code> <hex>    - Names <hex> <code>.
+#   hubot set @<room> [<MAC>|<IP>]    - Names MAC or IP address <room>.
+#   hubot help    - Shows usage.
+#   where
+#       <code> ::= [0-9a-z:]+
+#       <room> ::= [0-9a-z:]+
+#       <MAC>  ::= [0-9a-f:]+
+#       <IP>   ::= [0-9.]+
 #
 # Examples:
 #   hubot learn light:on                    - Learns IR hex code and names it light:on.
