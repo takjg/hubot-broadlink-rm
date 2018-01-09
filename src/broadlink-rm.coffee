@@ -67,17 +67,17 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Commands
 
 sendN = (robot, res) ->
-    keys = res.match[1].toLowerCase().split /\s+/
-    keys.shift()
-    sendN_ robot, res, keys
+    codes = res.match[1].toLowerCase().split /\s+/
+    codes.shift()
+    sendN_ robot, res, codes
 
-sendN_ = (robot, res, keys) ->
-    repeat keys, (key, callback) ->
-        send robot, res, key, callback
+sendN_ = (robot, res, codes) ->
+    repeat codes, (code, callback) ->
+        send robot, res, code, callback
 
-send = (robot, res, key_room, callback) ->
-    { key, room } = parse key_room
-    hex  = getVal robot, key
+send = (robot, res, code_room, callback) ->
+    { code, room } = parse code_room
+    hex  = getVal robot, code
     host = getVal robot, room
     back = (msg) -> res.send msg ; callback()
     if hex
@@ -85,15 +85,15 @@ send = (robot, res, key_room, callback) ->
         if device
             buffer = new Buffer hex, 'hex'
             device.sendData buffer
-            setTimeout (-> back "sent #{key}"), 1000
+            setTimeout (-> back "sent #{code}"), 1000
         else
             back "device not found #{host}"
     else
-        back "no such code #{key}"
+        back "no such code #{code}"
 
-parse = (key) ->
-    m = key.match /([^@]+)(@.+)?/
-    { key: m[1], room: m[2] }
+parse = (code) ->
+    m = code.match /([^@]+)(@.+)?/
+    { code: m[1], room: m[2] }
 
 repeat = (a, f) ->
     if a.length > 0
@@ -102,19 +102,19 @@ repeat = (a, f) ->
             repeat a, f
 
 learn1 = (robot, res) ->
-    key  = res.match[1] .toLowerCase()
+    code = res.match[1] .toLowerCase()
     room = res.match[2]?.toLowerCase()
-    learn robot, res, key, room, (->)
+    learn robot, res, code, room, (->)
 
 learnN = (robot, res) ->
-    key   = res.match[1] .toLowerCase()
+    code  = res.match[1] .toLowerCase()
     room  = res.match[5]?.toLowerCase()
     start = Number res.match[2]
     stop  = Number res.match[3]
     repeat [start .. stop], (n, callback) ->
-        learn robot, res, key + n, room, callback
+        learn robot, res, code + n, room, callback
 
-learn = (robot, res, key, room, callback) ->
+learn = (robot, res, code, room, callback) ->
     hex  = undefined
     host = getVal robot, room
     read = (str) ->
@@ -123,21 +123,21 @@ learn = (robot, res, key, room, callback) ->
     notFound = true
     prompt = ->
         notFound = false
-        res.send "ready #{key}"
+        res.send "ready #{code}"
     setCd = ->
-        setVal robot, key, hex
+        setVal robot, code, hex
         learnData.stop (->)
-        respond res, key, hex
+        respond res, code, hex
         callback()
     learnData.start host, prompt, setCd, read, false
     if notFound
         res.send "device not found #{host}"
 
-respond = (res, key, hex) ->
+respond = (res, code, hex) ->
     if hex
-        res.send "set #{key} to #{hex}"
+        res.send "set #{code} to #{hex}"
     else
-        res.send "#{key} failed to learn code"
+        res.send "#{code} failed to learn code"
 
 get = (robot, res) ->
     key = res.match[1].toLowerCase()
@@ -146,9 +146,9 @@ get = (robot, res) ->
 
 set = (robot, res) ->
     key = res.match[1].toLowerCase()
-    hex = res.match[2].toLowerCase()
-    setVal robot, key, hex
-    respond res, key, hex
+    val = res.match[2].toLowerCase()
+    setVal robot, key, val
+    respond res, key, val
 
 delet = (robot, res) ->
     key = res.match[1].toLowerCase()
