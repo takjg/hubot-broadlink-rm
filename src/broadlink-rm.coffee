@@ -77,13 +77,13 @@ sendN_ = (robot, res, keys) ->
 
 send = (robot, res, key_room, callback) ->
     { key, room } = parse key_room
-    code = getVal robot, key
+    hex  = getVal robot, key
     host = getVal robot, room
     back = (msg) -> res.send msg ; callback()
-    if code
+    if hex
         device = getDevice { host }
         if device
-            buffer = new Buffer code, 'hex'
+            buffer = new Buffer hex, 'hex'
             device.sendData buffer
             setTimeout (-> back "sent #{key}"), 1000
         else
@@ -115,27 +115,27 @@ learnN = (robot, res) ->
         learn robot, res, key + n, room, callback
 
 learn = (robot, res, key, room, callback) ->
-    code = undefined
+    hex  = undefined
     host = getVal robot, room
     read = (str) ->
         m = str.match /Learn Code \(learned hex code: (\w+)\)/
-        code = m[1] if m
+        hex = m[1] if m
     notFound = true
     prompt = ->
         notFound = false
         res.send "ready #{key}"
     setCd = ->
-        setVal robot, key, code
+        setVal robot, key, hex
         learnData.stop (->)
-        respond res, key, code
+        respond res, key, hex
         callback()
     learnData.start host, prompt, setCd, read, false
     if notFound
         res.send "device not found #{host}"
 
-respond = (res, key, code) ->
-    if code
-        res.send "set #{key} to #{code}"
+respond = (res, key, hex) ->
+    if hex
+        res.send "set #{key} to #{hex}"
     else
         res.send "#{key} failed to learn code"
 
@@ -145,10 +145,10 @@ get = (robot, res) ->
     res.send "#{key} = #{val}"
 
 set = (robot, res) ->
-    key  = res.match[1].toLowerCase()
-    code = res.match[2].toLowerCase()
-    setVal robot, key, code
-    respond res, key, code
+    key = res.match[1].toLowerCase()
+    hex = res.match[2].toLowerCase()
+    setVal robot, key, hex
+    respond res, key, hex
 
 delet = (robot, res) ->
     key = res.match[1].toLowerCase()
@@ -164,8 +164,8 @@ list = (robot, res) ->
 getVal = (robot, key) ->
     robot.brain.get key
 
-setVal = (robot, key, code) ->
-    robot.brain.set key, code
+setVal = (robot, key, hex) ->
+    robot.brain.set key, hex
     addKey robot, key
 
 deleteVal = (robot, key) ->
