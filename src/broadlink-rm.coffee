@@ -47,17 +47,19 @@
 'use strict'
 
 module.exports = (robot) ->
-    name    = '[0-9a-z:]+'
-    at      = '@' + name
-    range   = '(\\d+)-(\\d+)'
-    hexAddr = '[0-9a-f:.]+'
-    robot.respond ///(send(\s+#{name}(#{at})?)+)$///i,               (res) -> sendN  robot, res
-    robot.respond ///learn\s+(#{name})\s*(#{at})?$///i,              (res) -> learn1 robot, res
-    robot.respond ///learn\s+(#{name})\s+#{range}(\s+(#{at}))?$///i, (res) -> learnN robot, res
-    robot.respond ///get\s+(@?#{name})$///i,                         (res) -> get    robot, res
-    robot.respond ///set\s+(@?#{name})\s+(#{hexAddr})$///i,          (res) -> set    robot, res
-    robot.respond ///delete\s+(@?#{name})$///i,                      (res) -> delet  robot, res
+    robot.respond ///(send(\s+#{CODE}(#{AT})?)+)$///i,               (res) -> sendN  robot, res
+    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///i,              (res) -> learn1 robot, res
+    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///i, (res) -> learnN robot, res
+    robot.respond ///get\s+(@?#{NAME})$///i,                         (res) -> get    robot, res
+    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///i,         (res) -> set    robot, res
+    robot.respond ///delete\s+(@?#{NAME})$///i,                      (res) -> delet  robot, res
     robot.respond ///list$///i,                                      (res) -> list   robot, res
+
+NAME     = '[0-9a-z:]+'
+CODE     = NAME
+AT       = '@' + NAME
+RANGE    = '(\\d+)-(\\d+)'
+HEX_ADDR = '[0-9a-f:.]+'
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
