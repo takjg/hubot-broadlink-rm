@@ -30,6 +30,7 @@
 #   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
 #   hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
 #   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+#   hubot cancel                            - Cancels all unsent codes.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
 #   hubot set @kitchen 192.168.1.23         - Names IP address 192.168.1.23 kitchen.
@@ -56,6 +57,7 @@ module.exports = (robot) ->
     robot.respond ///get\s+(@?#{NAME})$///i,                         (res) -> get    robot, res
     robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///i,         (res) -> set    robot, res
     robot.respond ///delete\s+(@?#{NAME})$///i,                      (res) -> delet  robot, res
+    robot.respond ///cancel$///i,                                    (res) -> cancel robot, res
     robot.respond ///list$///i,                                      (res) -> list   robot, res
 
 NAME     = '[0-9a-z:]+'
@@ -163,14 +165,33 @@ wait = (res, code, callback) ->
     w = waitOf code
     if w?
         res.send "wait #{w.string}"
-        setTimeout callback, w.millis
+        wait_ w.millis, callback
     else
         if code.head
             callback()
         else
-            setTimeout callback, 1000
+            wait_ 1000, callback
 
 
+waiting = new Set
+
+wait_ = (millis, callback) ->
+    timer = (flip setTimeout) millis, ->
+        callback()
+        waiting.delete timer
+    waiting.add timer
+
+clearWait = ->
+    for timer from waiting
+        clearTimeout timer
+    waiting.clear()
+
+flip = (f) -> (x, y) ->
+    f y, x
+
+cancel = (robot, res) ->
+    clearWait()
+    res.send "canceled"
 
 repeat = (a, f) ->
     if a.length > 0

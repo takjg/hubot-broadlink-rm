@@ -30,6 +30,7 @@ user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:c
 user>> hubot leran aircon:warm 14-30           - Also Useful to learn many codes of air conditioner.
 user>> hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
 user>> hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+user>> hubot cancel                            - Cancels all unsent codes.
 user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 user>> hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
 user>> hubot set @kitchen 192.168.1.23         - Names IP address 192.168.1.23 kitchen.
