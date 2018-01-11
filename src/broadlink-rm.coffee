@@ -6,7 +6,7 @@
 #
 # Commands:
 #   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
-#   hubot send <code>[@<room>] ...    - Sends IR hex <code> to <room>.
+#   hubot send [<wait>] <code>[@<room>] ...    - Sends IR hex <code> to <room> in <wait>.
 #   hubot list    - Shows all codes and rooms.
 #   hubot delete <code>    - Deletes IR hex <code>.
 #   hubot delete @<room>    - Deletes <room>.
@@ -18,6 +18,7 @@
 #   where
 #       <code> ::= [0-9a-z:]+
 #       <room> ::= [0-9a-z:]+
+#       <wait> ::= [0-9]+(ms|s|m|h|d)
 #       <MAC>  ::= [0-9a-f:]+
 #       <IP>   ::= [0-9.]+
 #
@@ -27,6 +28,8 @@
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
+#   hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
+#   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
 #   hubot set @kitchen 192.168.1.23         - Names IP address 192.168.1.23 kitchen.
@@ -47,7 +50,7 @@
 'use strict'
 
 module.exports = (robot) ->
-    robot.respond ///(send(\s+#{CODE}(#{AT})?)+)$///i,               (res) -> sendN  robot, res
+    robot.respond ///send(((\s+#{WAIT})?\s+#{NAME}(#{AT})?)+)$///i,  (res) -> sendN  robot, res
     robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///i,              (res) -> learn1 robot, res
     robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///i, (res) -> learnN robot, res
     robot.respond ///get\s+(@?#{NAME})$///i,                         (res) -> get    robot, res
@@ -60,6 +63,7 @@ CODE     = NAME
 AT       = '@' + NAME
 RANGE    = '(\\d+)-(\\d+)'
 HEX_ADDR = '[0-9a-f:.]+'
+WAIT     = '\\((\\d+)(ms|s|m|h|d)\\)'
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
@@ -67,33 +71,72 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Commands
 
 sendN = (robot, res) ->
-    codes = res.match[1].toLowerCase().split /\s+/
-    codes.shift()
+    args  = res.match[1].trim().toLowerCase().split /\s+/
+    codes = parse args
     sendN_ robot, res, codes
+
+parse = (args) ->
+    codes = []
+    prev  = undefined
+    for a in args
+        if a[0] == '('
+            m = a.match ///#{WAIT}///
+            prev = { wait: Number(m[1]), waitUnit: m[2] }
+        else
+            m = a.match ///(#{CODE})(#{AT})?///
+            code      = if prev? then prev else {}
+            code.code = m[1]
+            code.room = m[2] if m[2]
+            prev      = undefined
+            codes.push code
+    codes[0].head = true
+    codes
 
 sendN_ = (robot, res, codes) ->
     repeat codes, (code, callback) ->
         send robot, res, code, callback
 
-send = (robot, res, code_room, callback) ->
-    { code, room } = parse code_room
-    hex  = getVal robot, code
-    host = getVal robot, room
+send = (robot, res, code, callback) ->
+    hex  = getVal robot, code.code
+    host = getVal robot, code.room
     back = (msg) -> res.send msg ; callback()
     if hex
         device = getDevice { host }
         if device
-            buffer = new Buffer hex, 'hex'
-            device.sendData buffer
-            setTimeout (-> back "sent #{code}"), 1000
+            wait res, code, ->
+                buffer = new Buffer hex, 'hex'
+                device.sendData buffer
+                back "sent #{code.code}"
         else
             back "device not found #{host}"
     else
-        back "no such code #{code}"
+        back "no such code #{code.code}"
 
-parse = (code) ->
-    m = code.match /([^@]+)(@.+)?/
-    { code: m[1], room: m[2] }
+wait = (res, code, callback) ->
+    w = code.wait
+    if w?
+        u = code.waitUnit
+        millis = w * millisOf u
+        res.send "wait #{w}#{u}"
+        setTimeout callback, millis
+    else
+        if code.head
+            callback()
+        else
+            setTimeout callback, 1000
+
+millisOf = (unit) ->
+    switch unit
+        when 'ms' then 1
+        when 's'  then SEC
+        when 'm'  then MIN
+        when 'h'  then HOUR
+        when 'd'  then DAY
+
+SEC  = 1000
+MIN  = 60 * SEC
+HOUR = 60 * MIN
+DAY  = 24 * HOUR
 
 repeat = (a, f) ->
     if a.length > 0
