@@ -80,7 +80,7 @@ parse = (args) ->
     codes = []
     prev  = undefined
     for a in args
-        if a[0] == '('
+        if a[0] is '('
             m = a.match ///#{WAIT}///
             prev = { wait: Number(m[1]), waitUnit: m[2] }
         else
@@ -147,17 +147,17 @@ send = (robot, res, code, callback) ->
     hex  = getVal robot, code.code
     host = getVal robot, code.room
     back = (msg) -> res.send msg ; callback()
-    if hex
+    if hex?
         device = getDevice { host }
-        if device
+        if device?
             wait res, code, ->
                 buffer = new Buffer hex, 'hex'
                 device.sendData buffer
                 back "sent #{code.code}"
         else
-            back "device not found #{host}"
+            back "ERROR device not found #{host}"
     else
-        back "no such code #{code.code}"
+        back "ERROR no such code #{code.code}"
 
 wait = (res, code, callback) ->
     w = waitOf code
@@ -208,13 +208,13 @@ learn = (robot, res, code, room, callback) ->
         callback()
     learnData.start host, prompt, setCd, read, false
     if notFound
-        res.send "device not found #{host}"
+        res.send "ERROR device not found #{host}"
 
 respond = (res, code, hex) ->
     if hex
         res.send "set #{code} to #{hex}"
     else
-        res.send "#{code} failed to learn code"
+        res.send "ERROR #{code} failed to learn code"
 
 get = (robot, res) ->
     key = res.match[1].toLowerCase()
