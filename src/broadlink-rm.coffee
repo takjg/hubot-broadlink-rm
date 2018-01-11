@@ -18,9 +18,10 @@
 #   where
 #       <code> ::= [0-9a-z:]+
 #       <room> ::= [0-9a-z:]+
-#       <wait> ::= [0-9]+(ms|s|m|h|d)    - Must be less than or equal to 24 days
 #       <MAC>  ::= [0-9a-f:]+
 #       <IP>   ::= [0-9.]+
+#       <wait> ::= [0-9]+(ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日)
+#              - <wait> must be less than or equal to 24 days
 #
 # Examples:
 #   hubot learn light:on                    - Learns IR hex code and names it light:on.
@@ -29,6 +30,8 @@
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
 #   hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
+#   hubot send (7 hours) aircon:warm24
+#   hubot send (7時間) aircon:warm24
 #   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 #   hubot cancel                            - Cancels all unsent codes.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
@@ -65,7 +68,7 @@ CODE     = NAME
 AT       = '@' + NAME
 RANGE    = '(\\d+)-(\\d+)'
 HEX_ADDR = '[0-9a-f:.]+'
-WAIT     = '\\((\\d+)(ms|s|m|h|d)\\)'
+WAIT     = '\\(\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*\\)'
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
@@ -73,10 +76,14 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Commands
 
 sendN = (robot, res) ->
-    args  = res.match[1].trim().toLowerCase().split /\s+/
+    args  = tokenize res.match[1].toLowerCase()
     codes = parse args
     if ok robot, res, codes
         sendN_ robot, res, codes
+
+tokenize = (str) ->
+    re = ///#{WAIT}|#{NAME}(#{AT})?///g
+    m[0] while m = re.exec str
 
 parse = (args) ->
     codes = []
@@ -130,11 +137,11 @@ waitOf = (code) ->
 
 millisOf = (unit) ->
     switch unit
-        when 'ms' then 1
-        when 's'  then SEC
-        when 'm'  then MIN
-        when 'h'  then HOUR
-        when 'd'  then DAY
+        when 'ms'                           then 1
+        when 's', 'second', 'seconds', '秒' then SEC
+        when 'm', 'minute', 'minutes', '分' then MIN
+        when 'h', 'hour',   'hours', '時間' then HOUR
+        when 'd', 'day',    'days',    '日' then DAY
 
 SEC  = 1000
 MIN  = 60 * SEC
