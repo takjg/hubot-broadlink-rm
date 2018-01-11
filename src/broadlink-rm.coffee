@@ -18,7 +18,7 @@
 #   where
 #       <code> ::= [0-9a-z:]+
 #       <room> ::= [0-9a-z:]+
-#       <wait> ::= [0-9]+(ms|s|m|h|d)
+#       <wait> ::= [0-9]+(ms|s|m|h|d)    - Must be less than or equal to 24 days
 #       <MAC>  ::= [0-9a-f:]+
 #       <IP>   ::= [0-9.]+
 #
@@ -73,7 +73,8 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 sendN = (robot, res) ->
     args  = res.match[1].trim().toLowerCase().split /\s+/
     codes = parse args
-    sendN_ robot, res, codes
+    if ok robot, res, codes
+        sendN_ robot, res, codes
 
 parse = (args) ->
     codes = []
@@ -91,6 +92,52 @@ parse = (args) ->
             codes.push code
     codes[0].head = true
     codes
+
+ok = (robot, res, codes) ->
+    for code in codes
+        return false unless okCode   robot, res, code
+        return false unless okDevice robot, res, code
+        return false unless okWait          res, code
+    true
+
+okCode = (robot, res, code) ->
+    hex = getVal robot, code.code
+    res.send "ERROR no such code #{code.code}" unless hex?
+    hex?
+
+okDevice = (robot, res, code) ->
+    host   = getVal robot, code.room
+    device = getDevice { host }
+    res.send "ERROR device not found #{host}" unless device?
+    device?
+
+okWait = (res, code) ->
+    w = waitOf code
+    return true unless w?
+    p = w.millis <= 24 * DAY
+    res.send "ERROR (#{w.string}) too long" unless p
+    p
+
+waitOf = (code) ->
+    w = code.wait
+    if w?
+        u = code.waitUnit
+        m = w * millisOf u
+        s = w + u
+        { millis: m, string: s }
+
+millisOf = (unit) ->
+    switch unit
+        when 'ms' then 1
+        when 's'  then SEC
+        when 'm'  then MIN
+        when 'h'  then HOUR
+        when 'd'  then DAY
+
+SEC  = 1000
+MIN  = 60 * SEC
+HOUR = 60 * MIN
+DAY  = 24 * HOUR
 
 sendN_ = (robot, res, codes) ->
     repeat codes, (code, callback) ->
@@ -113,30 +160,17 @@ send = (robot, res, code, callback) ->
         back "no such code #{code.code}"
 
 wait = (res, code, callback) ->
-    w = code.wait
+    w = waitOf code
     if w?
-        u = code.waitUnit
-        millis = w * millisOf u
-        res.send "wait #{w}#{u}"
-        setTimeout callback, millis
+        res.send "wait #{w.string}"
+        setTimeout callback, w.millis
     else
         if code.head
             callback()
         else
             setTimeout callback, 1000
 
-millisOf = (unit) ->
-    switch unit
-        when 'ms' then 1
-        when 's'  then SEC
-        when 'm'  then MIN
-        when 'h'  then HOUR
-        when 'd'  then DAY
 
-SEC  = 1000
-MIN  = 60 * SEC
-HOUR = 60 * MIN
-DAY  = 24 * HOUR
 
 repeat = (a, f) ->
     if a.length > 0
