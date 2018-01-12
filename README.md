@@ -2,7 +2,7 @@
 
 A hubot script to learn and send IR hex codes with Broadlink RM
 
-See [an example](https://scrapbox.io/smart-home) how to use the script with Slack, IFTTT, Google Home, and Amazon Echo.
+See [an example](https://scrapbox.io/smart-home) that uses the script with Slack, IFTTT, Google Home, and Amazon Echo.
 
 See [`src/broadlink-rm.coffee`](src/broadlink-rm.coffee) for full documentation.
 
@@ -27,7 +27,10 @@ user>> hubot learn light:on                    - Learns IR hex code and names it
 user>> hubot send light:on                     - Sends IR hex code of light:on.
 user>> hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
-user>> hubot leran aircon:warm 14-30           - Is also useful to learn many codes of air conditioner.
+user>> hubot leran aircon:warm 14-30           - Also Useful to learn many codes of air conditioner.
+user>> hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
+user>> hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+user>> hubot cancel                            - Cancels all unsent codes.
 user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 user>> hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
 user>> hubot set @kitchen 192.168.1.23         - Names IP address 192.168.1.23 kitchen.
@@ -43,3 +46,11 @@ user>> hubot help                              - Shows usage.
 ## NPM Module
 
 https://www.npmjs.com/package/hubot-broadlink-rm
+
+## LICENSE
+
+Copyright (c) 2017 Tak Jaga
+
+Licensed under the [Apache License, Version 2.0][Apache]
+
+[Apache]: http://www.apache.org/licenses/LICENSE-2.0
