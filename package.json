@@ -3,7 +3,7 @@
   "description": "A hubot script to learn IR hex codes and to send them with Broadlink RM",
   "version": "0.3.1",
   "author": "tak <tak.jaga@gmail.com>",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "keywords": "hubot, hubot-scripts, iot, broadlink, rm mini 3",
   "repository": {
     "type": "git",

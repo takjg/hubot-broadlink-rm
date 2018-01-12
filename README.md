@@ -46,3 +46,11 @@ user>> hubot help                              - Shows usage.
 ## NPM Module
 
 https://www.npmjs.com/package/hubot-broadlink-rm
+
+## LICENSE
+
+Copyright (c) 2017 Tak Jaga
+
+Licensed under the [Apache License, Version 2.0][Apache]
+
+[Apache]: http://www.apache.org/licenses/LICENSE-2.0
