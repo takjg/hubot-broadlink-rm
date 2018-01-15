@@ -6,7 +6,7 @@
 #
 # Commands:
 #   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
-#   hubot send [<wait>] <code>[@<room>] ...    - Sends IR hex <code> to <room> in <wait>.
+#   hubot send [(<wait>)] <code>[@<room>][(<wait>)]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
 #   hubot list    - Shows all codes and rooms.
 #   hubot delete <code>    - Deletes IR hex <code>.
 #   hubot delete @<room>    - Deletes <room>.
@@ -33,6 +33,8 @@
 #   hubot send (7 hours) aircon:warm24
 #   hubot send (7時間) aircon:warm24
 #   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+#   hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
+#   hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 #   hubot cancel                            - Cancels all unsent codes.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
