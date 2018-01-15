@@ -152,7 +152,10 @@ okCode = (robot, res, code) ->
     hex?
 
 okDevice = (robot, res, code) ->
-    host   = getVal robot, code.room
+    host = getVal robot, code.room
+    if code.room? and not host?
+        res.send "ERROR no such room #{code.room}"
+        return false
     device = getDevice { host }
     res.send "ERROR device not found #{host}" unless device?
     device?
@@ -205,7 +208,8 @@ send_ = (robot, res, code, callback) ->
             wait res, code, ->
                 buffer = new Buffer hex, 'hex'
                 device.sendData buffer
-                back "sent #{code.code}"
+                room = if code.room? then code.room else ''
+                back "sent #{code.code}#{room}"
         else
             back "ERROR device not found #{host}"
     else
