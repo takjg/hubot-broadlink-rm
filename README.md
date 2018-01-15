@@ -85,6 +85,8 @@ user>> hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in sev
 user>> hubot send (7 hours) aircon:warm24
 user>> hubot send (7時間) aircon:warm24
 user>> hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+user>> hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
+user>> hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 user>> hubot cancel                            - Cancels all unsent codes.
 user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 user>> hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
