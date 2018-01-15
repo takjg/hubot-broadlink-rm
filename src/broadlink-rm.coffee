@@ -68,7 +68,7 @@
 'use strict'
 
 module.exports = (robot) ->
-    robot.respond ///send(((\s+#{WAIT})?\s+#{NAME}(#{AT})?)+)$///i,  (res) -> sendN  robot, res
+    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///i,     (res) -> sendN  robot, res
     robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///i,              (res) -> learn1 robot, res
     robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///i, (res) -> learnN robot, res
     robot.respond ///get\s+(@?#{NAME})$///i,                         (res) -> get    robot, res
@@ -77,12 +77,14 @@ module.exports = (robot) ->
     robot.respond ///cancel$///i,                                    (res) -> cancel robot, res
     robot.respond ///list$///i,                                      (res) -> list   robot, res
 
-NAME     = '[0-9a-z:]+'
-CODE     = NAME
-AT       = '@' + NAME
-RANGE    = '(\\d+)-(\\d+)'
-HEX_ADDR = '[0-9a-f:.]+'
-WAIT     = '\\(\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*\\)'
+NAME      = '[0-9a-z:]+'
+CODE      = NAME
+AT        = '@' + NAME
+RANGE     = '(\\d+)-(\\d+)'
+HEX_ADDR  = '[0-9a-f:.]+'
+WAIT      = '\\(\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*\\)'
+REPEAT    = "(#{WAIT})?\\*(\\d+)"
+CODE_AT_N = "#{CODE}(#{AT})?(#{REPEAT})?"
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
@@ -96,7 +98,7 @@ sendN = (robot, res) ->
         sendN_ robot, res, codes
 
 tokenize = (str) ->
-    re = ///#{WAIT}|#{NAME}(#{AT})?///g
+    re = ///#{WAIT}|#{CODE_AT_N}///g
     m[0] while m = re.exec str
 
 parse = (args) ->
@@ -107,14 +109,34 @@ parse = (args) ->
             m = a.match ///#{WAIT}///
             prev = { wait: Number(m[1]), waitUnit: m[2] }
         else
-            m = a.match ///(#{CODE})(#{AT})?///
-            code      = if prev? then prev else {}
-            code.code = m[1]
-            code.room = m[2] if m[2]
-            prev      = undefined
-            codes.push code
+            m = a.match ///(#{CODE})(#{AT})?(#{REPEAT})?///
+            codes = codes.concat mkCodes(prev, m)
+            prev = undefined
     codes[0].head = true
     codes
+
+mkCodes = (prev, m) ->
+    code      = if prev? then prev else {}
+    code.code = m[1]
+    code.room = m[2] if m[2]?
+    repeat    = m[3]
+    return [code] unless repeat?
+    replicate code, m
+
+replicate = (code, m) ->
+    wait = { wait: Number(m[5]), waitUnit: m[6] } if m[4]?
+    n    = Number m[7]
+    switch n
+        when 0 then code.code = undefined ; [code]
+        when 1 then [code]
+        else replicateN code, wait, n
+
+replicateN = (code, wait, n) ->
+    copy = { code: code.code }
+    copy.room = code.room if code.room?
+    Object.assign copy, wait
+    copies = Array(n - 1).fill copy
+    [code].concat copies
 
 ok = (robot, res, codes) ->
     for code in codes
@@ -124,6 +146,7 @@ ok = (robot, res, codes) ->
     true
 
 okCode = (robot, res, code) ->
+    return true unless code.code?
     hex = getVal robot, code.code
     res.send "ERROR no such code #{code.code}" unless hex?
     hex?
@@ -167,6 +190,12 @@ sendN_ = (robot, res, codes) ->
         send robot, res, code, callback
 
 send = (robot, res, code, callback) ->
+    if code.code?
+        send_ robot, res, code, callback
+    else
+        wait         res, code, callback
+
+send_ = (robot, res, code, callback) ->
     hex  = getVal robot, code.code
     host = getVal robot, code.room
     back = (msg) -> res.send msg ; callback()
@@ -192,7 +221,6 @@ wait = (res, code, callback) ->
             callback()
         else
             wait_ 1000, callback
-
 
 waiting = new Set
 
