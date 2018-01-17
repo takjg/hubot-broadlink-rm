@@ -46,7 +46,31 @@ sent light:off
 Easy to schedule sending IR codes in detail.
 ```
 user>> hubot (7h) ac:on
+wait 7h
+sent ac:on
+
 user>> hubot tv:ch1 (3s) tv:source (2500ms) tv:source
+sent tv:ch1
+wait 3s
+sent tv:source
+wait 2500ms
+tv:source
+```
+
+Easy to repeat sending IR codes.
+```
+user>> hubot tv:vol:up*4
+sent tv:vol:up
+sent tv:vol:up
+sent tv:vol:up
+sent tv:vol:up
+
+user>> hubot tv:ch1 (3s) tv:source(2500ms)*2
+sent tv:ch1
+wait 3s
+sent tv:source
+wait 2500ms
+sent tv:source
 ```
 
 Easy to specify each RM Mini devices.
