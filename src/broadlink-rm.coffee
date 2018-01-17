@@ -6,7 +6,7 @@
 #
 # Commands:
 #   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
-#   hubot send [(<wait>)] <code>[@<room>][(<wait>)]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
+#   hubot send [[<wait>]] <code>[@<room>][[<wait>]]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
 #   hubot list    - Shows all codes and rooms.
 #   hubot delete <code>    - Deletes IR hex <code>.
 #   hubot delete @<room>    - Deletes <room>.
@@ -20,7 +20,7 @@
 #       <room> ::= [0-9a-z:]+
 #       <MAC>  ::= [0-9a-f:]+
 #       <IP>   ::= [0-9.]+
-#       <wait> ::= [0-9]+(ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日)
+#       <wait> ::= [0-9]+[ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日]
 #              - <wait> must be less than or equal to 24 days
 #
 # Examples:
@@ -29,12 +29,12 @@
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
-#   hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
-#   hubot send (7 hours) aircon:warm24
-#   hubot send (7時間) aircon:warm24
-#   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+#   hubot send [7h] aircon:warm24           - Will sends aircon:warm24 in seven hours.
+#   hubot send [7 hours] aircon:warm24
+#   hubot send [7時間] aircon:warm24
+#   hubot send tv:ch1 [2s] tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 #   hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
-#   hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
+#   hubot send tv:ch1 tv:source[2s]*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 #   hubot cancel                            - Cancels all unsent codes.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
@@ -84,7 +84,7 @@ CODE      = NAME
 AT        = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
 HEX_ADDR  = '[0-9a-f:.]+'
-WAIT      = '\\(\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*\\)'
+WAIT      = '[[(]\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*[\\])]'
 REPEAT    = "(#{WAIT})?\\*(\\d+)"
 CODE_AT_N = "#{CODE}(#{AT})?(#{REPEAT})?"
 
@@ -107,7 +107,7 @@ parse = (args) ->
     codes = []
     prev  = undefined
     for a in args
-        if a[0] is '('
+        if a[0] is '[' or a[0] is '('
             m = a.match ///#{WAIT}///
             prev = { wait: Number(m[1]), waitUnit: m[2] }
         else

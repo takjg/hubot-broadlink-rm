@@ -45,11 +45,11 @@ sent light:off
 
 Easy to schedule sending IR codes in detail.
 ```
-user>> hubot (7h) ac:on
+user>> hubot [7h] ac:on
 wait 7h
 sent ac:on
 
-user>> hubot tv:ch1 (3s) tv:source (2500ms) tv:source
+user>> hubot tv:ch1 [3s] tv:source [2500ms] tv:source
 sent tv:ch1
 wait 3s
 sent tv:source
@@ -65,7 +65,7 @@ sent tv:vol:up
 sent tv:vol:up
 sent tv:vol:up
 
-user>> hubot tv:ch1 (3s) tv:source(2500ms)*2
+user>> hubot tv:ch1 [3s] tv:source[2500ms]*2
 sent tv:ch1
 wait 3s
 sent tv:source
@@ -105,12 +105,12 @@ user>> hubot send light:on                     - Sends IR hex code of light:on.
 user>> hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 user>> hubot leran aircon:warm 14-30           - Also Useful to learn many codes of air conditioner.
-user>> hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
-user>> hubot send (7 hours) aircon:warm24
-user>> hubot send (7時間) aircon:warm24
-user>> hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+user>> hubot send [7h] aircon:warm24           - Will sends aircon:warm24 in seven hours.
+user>> hubot send [7 hours] aircon:warm24
+user>> hubot send [7時間] aircon:warm24
+user>> hubot send tv:ch1 [2s] tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 user>> hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
-user>> hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
+user>> hubot send tv:ch1 tv:source[2s]*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 user>> hubot cancel                            - Cancels all unsent codes.
 user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 user>> hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
