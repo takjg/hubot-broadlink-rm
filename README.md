@@ -45,8 +45,32 @@ sent light:off
 
 Easy to schedule sending IR codes in detail.
 ```
-user>> hubot (7h) ac:on
-user>> hubot tv:ch1 (3s) tv:source (2500ms) tv:source
+user>> hubot [7h] ac:on
+wait 7h
+sent ac:on
+
+user>> hubot tv:ch1 [3s] tv:source [2500ms] tv:source
+sent tv:ch1
+wait 3s
+sent tv:source
+wait 2500ms
+tv:source
+```
+
+Easy to repeat sending IR codes.
+```
+user>> hubot tv:vol:up*4
+sent tv:vol:up
+sent tv:vol:up
+sent tv:vol:up
+sent tv:vol:up
+
+user>> hubot tv:ch1 [3s] tv:source[2500ms]*2
+sent tv:ch1
+wait 3s
+sent tv:source
+wait 2500ms
+sent tv:source
 ```
 
 Easy to specify each RM Mini devices.
@@ -54,6 +78,35 @@ Easy to specify each RM Mini devices.
 user>> hubot set @kitchen 01:23:45:67:89:ab
 user>> hubot light:on@kitchen
 ```
+
+#### UNIX commands can be used in `send`
+
+You can control smart devices that do not have an IR reciever together with IR devices.
+For example, you can name a UNIX command `curl -s https://SMART.DEVICE/API/on` `smart:device:on`.
+```
+user>> hubot command smart:device:on curl -s https://SMART.DEVICE/API/on
+```
+
+Then the smart device can be used in `send`.
+```
+user>> send smart:device:on() light:on tv:on
+curl -s https://SMART.DEVICE/API/on
+sent light:on
+sent tv:on
+```
+
+A UNIX command can take an argument `#`.
+The special character `#` is expanded when the command is called.
+```
+user>> hubot command say bin/google-home-notifier.sh "#"
+user>> hubot send say(hello, world!)
+bin/google-home-notifier.sh "hello  world "
+said hellow  world
+```
+For security reasons, a text of the given argument is sanitized.
+All Symbols of `hello, world!` (`,` and `!`) are replaced with a space.
+
+## Documentation
 
 For more details, see [a comprehensive guide](https://scrapbox.io/smart-home) to exploiting your RM Mini with Hubot, Slack, IFTTT, Google Home, and Amazon Echo.
 
@@ -81,12 +134,12 @@ user>> hubot send light:on                     - Sends IR hex code of light:on.
 user>> hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 user>> hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 user>> hubot leran aircon:warm 14-30           - Also Useful to learn many codes of air conditioner.
-user>> hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
-user>> hubot send (7 hours) aircon:warm24
-user>> hubot send (7時間) aircon:warm24
-user>> hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+user>> hubot send [7h] aircon:warm24           - Will sends aircon:warm24 in seven hours.
+user>> hubot send [7 hours] aircon:warm24
+user>> hubot send [7時間] aircon:warm24
+user>> hubot send tv:ch1 [2s] tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 user>> hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
-user>> hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
+user>> hubot send tv:ch1 tv:source[2s]*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 user>> hubot cancel                            - Cancels all unsent codes.
 user>> hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 user>> hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .

@@ -6,21 +6,25 @@
 #
 # Commands:
 #   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
-#   hubot send [(<wait>)] <code>[@<room>][(<wait>)]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
+#   hubot send [[<wait>]] (<code>[@<room>]|<cmd>)[[<wait>]]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
 #   hubot list    - Shows all codes and rooms.
 #   hubot delete <code>    - Deletes IR hex <code>.
 #   hubot delete @<room>    - Deletes <room>.
 #   hubot get <code>    - Shows IR hex code of <code>.
 #   hubot get @<room>    - Shows MAC or IP address of <room>.
+#   hubot get !<cmd>    - Shows UNIX commands of <cmd>.
 #   hubot set <code> <hex>    - Names <hex> <code>.
 #   hubot set @<room> [<MAC>|<IP>]    - Names MAC or IP address <room>.
+#   hubot command <cmd> <body>
 #   hubot help    - Shows usage.
 #   where
 #       <code> ::= [0-9a-z:]+
 #       <room> ::= [0-9a-z:]+
+#       <cmd>  ::= [0-9a-z:]+
+#       <body> ::= UNIX commands (A special character '#' is expanded to a sanitized given argument)
 #       <MAC>  ::= [0-9a-f:]+
 #       <IP>   ::= [0-9.]+
-#       <wait> ::= [0-9]+(ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日)
+#       <wait> ::= [0-9]+[ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日]
 #              - <wait> must be less than or equal to 24 days
 #
 # Examples:
@@ -29,12 +33,12 @@
 #   hubot send tv:off aircon:off light:off  - Sends three codes in turn.
 #   hubot learn tv:ch 1-8                   - Learns eight codes tv:ch1, tv:ch2, ..., tv:ch8 in turn.
 #   hubot leran aircon:warm 14-30           - Also useful to learn many codes of air conditioner.
-#   hubot send (7h) aircon:warm24           - Will sends aircon:warm24 in seven hours.
-#   hubot send (7 hours) aircon:warm24
-#   hubot send (7時間) aircon:warm24
-#   hubot send tv:ch1 (2s) tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
+#   hubot send [7h] aircon:warm24           - Will sends aircon:warm24 in seven hours.
+#   hubot send [7 hours] aircon:warm24
+#   hubot send [7時間] aircon:warm24
+#   hubot send tv:ch1 [2s] tv:source        - Sends tv:ch1 then sends tv:source in two seconds.
 #   hubot send tv:ch1 tv:source*3           - Sends tv:ch1 then sends tv:source three times
-#   hubot send tv:ch1 tv:source(2s)*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
+#   hubot send tv:ch1 tv:source[2s]*3       - Sends tv:ch1 then sends tv:source three times in two seconds.
 #   hubot cancel                            - Cancels all unsent codes.
 #   hubot get aircon:warm22                 - Shows IR hex code of aircon:warm22.
 #   hubot set aircon:clean 123abc...        - Names IR hex code of aircon:clean 123abc... .
@@ -70,23 +74,26 @@
 'use strict'
 
 module.exports = (robot) ->
-    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///i,     (res) -> sendN  robot, res
-    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///i,              (res) -> learn1 robot, res
-    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///i, (res) -> learnN robot, res
-    robot.respond ///get\s+(@?#{NAME})$///i,                         (res) -> get    robot, res
-    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///i,         (res) -> set    robot, res
-    robot.respond ///delete\s+(@?#{NAME})$///i,                      (res) -> delet  robot, res
-    robot.respond ///cancel$///i,                                    (res) -> cancel robot, res
-    robot.respond ///list$///i,                                      (res) -> list   robot, res
+    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///,     (res) -> sendN  robot, res
+    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///,              (res) -> learn1 robot, res
+    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///, (res) -> learnN robot, res
+    robot.respond ///get\s+([@!]?#{NAME})$///,                      (res) -> get    robot, res
+    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,         (res) -> set    robot, res
+    robot.respond ///command\s+(#{CMD})\s+(.*$)///,                 (res) -> setCMD robot, res
+    robot.respond ///delete\s+(@?#{NAME})$///,                      (res) -> delet  robot, res
+    robot.respond ///cancel$///,                                    (res) -> cancel robot, res
+    robot.respond ///list$///,                                      (res) -> list   robot, res
 
 NAME      = '[0-9a-z:]+'
 CODE      = NAME
+CMD       = NAME
 AT        = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
 HEX_ADDR  = '[0-9a-f:.]+'
-WAIT      = '\\(\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*\\)'
+WAIT      = '[[(]\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*[\\])]'
 REPEAT    = "(#{WAIT})?\\*(\\d+)"
-CODE_AT_N = "#{CODE}(#{AT})?(#{REPEAT})?"
+ARG       = '([^()]*)'
+CODE_AT_N = "(((#{CMD})[(]#{ARG}[)])|((#{CODE})(#{AT})?))(#{REPEAT})?"
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
@@ -94,24 +101,24 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Commands
 
 sendN = (robot, res) ->
-    args  = tokenize res.match[1].toLowerCase()
+    args  = tokenize res.match[1]
     codes = parse args
     if ok robot, res, codes
         sendN_ robot, res, codes
 
 tokenize = (str) ->
-    re = ///#{WAIT}|#{CODE_AT_N}///g
+    re = ///(#{WAIT})|(#{CODE_AT_N})///g
     m[0] while m = re.exec str
 
 parse = (args) ->
     codes = []
     prev  = undefined
     for a in args
-        if a[0] is '('
+        if a[0] is '[' or a[0] is '('
             m = a.match ///#{WAIT}///
             prev = { wait: Number(m[1]), waitUnit: m[2] }
         else
-            m = a.match ///(#{CODE})(#{AT})?(#{REPEAT})?///
+            m = a.match ///#{CODE_AT_N}///
             codes = codes.concat mkCodes(prev, m)
             prev = undefined
     codes[0].head = true
@@ -119,23 +126,28 @@ parse = (args) ->
 
 mkCodes = (prev, m) ->
     code      = if prev? then prev else {}
-    code.code = m[1]
-    code.room = m[2] if m[2]?
-    repeat    = m[3]
+    code.code =       m[6] if m[6]?
+    code.room =       m[7] if m[7]?
+    code.cmd  = '!' + m[3] if m[3]?
+    code.arg  =       m[4] if m[4]?
+    repeat    =       m[8]
     return [code] unless repeat?
     replicate code, m
 
 replicate = (code, m) ->
-    wait = { wait: Number(m[5]), waitUnit: m[6] } if m[4]?
-    n    = Number m[7]
+    wait = { wait: Number(m[10]), waitUnit: m[11] } if m[9]?
+    n    = Number m[12]
     switch n
         when 0 then code.code = undefined ; [code]
         when 1 then [code]
         else replicateN code, wait, n
 
 replicateN = (code, wait, n) ->
-    copy = { code: code.code }
+    copy = {}
+    copy.code = code.code if code.code?
     copy.room = code.room if code.room?
+    copy.cmd  = code.cmd  if code.cmd?
+    copy.arg  = code.arg  if code.arg?
     Object.assign copy, wait
     copies = Array(n - 1).fill copy
     [code].concat copies
@@ -144,6 +156,7 @@ ok = (robot, res, codes) ->
     for code in codes
         return false unless okCode   robot, res, code
         return false unless okDevice robot, res, code
+        return false unless okCmd    robot, res, code
         return false unless okWait          res, code
     true
 
@@ -152,6 +165,12 @@ okCode = (robot, res, code) ->
     hex = getVal robot, code.code
     res.send "ERROR no such code #{code.code}" unless hex?
     hex?
+
+okCmd = (robot, res, code) ->
+    return true unless code.cmd?
+    body = getVal robot, code.cmd
+    res.send "ERROR no such command #{code.cmd.substr 1}" unless body?
+    body?
 
 okDevice = (robot, res, code) ->
     host = getVal robot, code.room
@@ -195,10 +214,9 @@ sendN_ = (robot, res, codes) ->
         send robot, res, code, callback
 
 send = (robot, res, code, callback) ->
-    if code.code?
-        send_ robot, res, code, callback
-    else
-        wait         res, code, callback
+    if      code.code? then send_ robot, res, code, callback
+    else if code.cmd?  then exec_ robot, res, code, callback
+    else                    wait         res, code, callback
 
 send_ = (robot, res, code, callback) ->
     hex  = getVal robot, code.code
@@ -216,6 +234,23 @@ send_ = (robot, res, code, callback) ->
             back "ERROR device not found #{host}"
     else
         back "ERROR no such code #{code.code}"
+
+exec_ = (robot, res, code, callback) ->
+    body = getVal robot, code.cmd
+    arg  = sanitize code.arg
+    back = (msg) -> res.send msg ; callback()
+    if body?
+        wait res, code, ->
+            cmd = body.replace /#/g, arg
+            { exec } = require 'child_process'
+            exec cmd, (error, stdout, stderr) ->
+                msg = [cmd, stdout, stderr].join('\n').trim()
+                back msg
+    else
+        back "ERROR no such command #{code.cmd.substr 1}"
+
+sanitize = (str) ->
+    str.replace /[\0-/:-@[-`{-\xff]/g, ' '
 
 wait = (res, code, callback) ->
     w = waitOf code
@@ -303,6 +338,12 @@ set = (robot, res) ->
     setVal robot, key, val
     respond res, key, val
 
+setCMD = (robot, res) ->
+    cmd  = '!' + res.match[1].toLowerCase()
+    body =       res.match[2]
+    setVal robot, cmd, body
+    respond res, cmd, body
+
 delet = (robot, res) ->
     key = res.match[1].toLowerCase()
     deleteVal robot, key
@@ -317,8 +358,8 @@ list = (robot, res) ->
 getVal = (robot, key) ->
     robot.brain.get key
 
-setVal = (robot, key, hex) ->
-    robot.brain.set key, hex
+setVal = (robot, key, val) ->
+    robot.brain.set key, val
     addKey robot, key
 
 deleteVal = (robot, key) ->
