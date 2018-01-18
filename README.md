@@ -82,14 +82,17 @@ user>> hubot light:on@kitchen
 #### UNIX commands can be used in `send`
 
 You can control smart devices that do not have an IR reciever together with IR devices.
-For example, you can name a UNIX command `curl -s URL.TO.SMART.DEVICE.API` `smart:device:on`.
+For example, you can name a UNIX command `curl -s https://SMART.DEVICE/API/on` `smart:device:on`.
 ```
-user>> hubot command smart:device:on curl -s URL.TO.SMART.DEVICE.API
+user>> hubot command smart:device:on curl -s https://SMART.DEVICE/API/on
 ```
 
 Then the smart device can be used in `send`.
 ```
 user>> send smart:device:on() light:on tv:on
+curl -s https://SMART.DEVICE/API/on
+sent light:on
+sent tv:on
 ```
 
 A UNIX command can take an argument `#`.
