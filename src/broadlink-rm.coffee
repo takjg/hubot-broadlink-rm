@@ -74,15 +74,15 @@
 'use strict'
 
 module.exports = (robot) ->
-    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///i,     (res) -> sendN  robot, res
-    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///i,              (res) -> learn1 robot, res
-    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///i, (res) -> learnN robot, res
-    robot.respond ///get\s+([@!]?#{NAME})$///i,                      (res) -> get    robot, res
-    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///i,         (res) -> set    robot, res
-    robot.respond ///command\s+(#{CMD})\s+(.*$)///i,                 (res) -> setCMD robot, res
-    robot.respond ///delete\s+(@?#{NAME})$///i,                      (res) -> delet  robot, res
-    robot.respond ///cancel$///i,                                    (res) -> cancel robot, res
-    robot.respond ///list$///i,                                      (res) -> list   robot, res
+    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///,     (res) -> sendN  robot, res
+    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///,              (res) -> learn1 robot, res
+    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///, (res) -> learnN robot, res
+    robot.respond ///get\s+([@!]?#{NAME})$///,                      (res) -> get    robot, res
+    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,         (res) -> set    robot, res
+    robot.respond ///command\s+(#{CMD})\s+(.*$)///,                 (res) -> setCMD robot, res
+    robot.respond ///delete\s+(@?#{NAME})$///,                      (res) -> delet  robot, res
+    robot.respond ///cancel$///,                                    (res) -> cancel robot, res
+    robot.respond ///list$///,                                      (res) -> list   robot, res
 
 NAME      = '[0-9a-z:]+'
 CODE      = NAME
