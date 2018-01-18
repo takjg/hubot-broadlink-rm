@@ -37,7 +37,7 @@ set tv:ch8 to ...
 
 Several IR codes can be sent by one command.
 ```
-user>> hubot tv:off ac:off light:off
+user>> hubot send tv:off ac:off light:off
 sent tv:off
 sent ac:off
 sent light:off
@@ -45,11 +45,11 @@ sent light:off
 
 Easy to schedule sending IR codes in detail.
 ```
-user>> hubot [7h] ac:on
+user>> hubot send [7h] ac:on
 wait 7h
 sent ac:on
 
-user>> hubot tv:ch1 [3s] tv:source [2500ms] tv:source
+user>> hubot send tv:ch1 [3s] tv:source [2500ms] tv:source
 sent tv:ch1
 wait 3s
 sent tv:source
@@ -59,13 +59,13 @@ tv:source
 
 Easy to repeat sending IR codes.
 ```
-user>> hubot tv:vol:up*4
+user>> hubot send tv:vol:up*4
 sent tv:vol:up
 sent tv:vol:up
 sent tv:vol:up
 sent tv:vol:up
 
-user>> hubot tv:ch1 [3s] tv:source[2500ms]*2
+user>> hubot send tv:ch1 [3s] tv:source[2500ms]*2
 sent tv:ch1
 wait 3s
 sent tv:source
