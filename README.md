@@ -79,6 +79,32 @@ user>> hubot set @kitchen 01:23:45:67:89:ab
 user>> hubot light:on@kitchen
 ```
 
+#### UNIX commands can be used in `send`
+
+You can control smart devices that do not have an IR reciever together with IR devices.
+For example, you can name a UNIX command `curl -s URL.TO.SMART.DEVICE.API` `smart:device:on`.
+```
+user>> hubot command smart:device:on curl -s URL.TO.SMART.DEVICE.API
+```
+
+Then the smart device can be used in `send`.
+```
+user>> send smart:device:on() light:on tv:on
+```
+
+A UNIX command can take an argument `#`.
+The special character `#` is expanded when the command is called.
+```
+user>> hubot command say bin/google-home-notifier.sh "#"
+user>> hubot send say(hello, world!)
+bin/google-home-notifier.sh "hello  world "
+said hellow  world
+```
+For security reasons, a text of the given argument is sanitized.
+All Symbols of `hello, world!` (`,` and `!`) are replaced with a space.
+
+## Documentation
+
 For more details, see [a comprehensive guide](https://scrapbox.io/smart-home) to exploiting your RM Mini with Hubot, Slack, IFTTT, Google Home, and Amazon Echo.
 
 See [`src/broadlink-rm.coffee`](src/broadlink-rm.coffee) for full documentation.
