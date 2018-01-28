@@ -10,6 +10,7 @@
 #   hubot list    - Shows all codes and rooms.
 #   hubot delete <code>    - Deletes IR hex <code>.
 #   hubot delete @<room>    - Deletes <room>.
+#   hubot delete !<cmd>    - Deletes <cmd>.
 #   hubot get <code>    - Shows IR hex code of <code>.
 #   hubot get @<room>    - Shows MAC or IP address of <room>.
 #   hubot get !<cmd>    - Shows UNIX commands of <cmd>.
@@ -80,7 +81,7 @@ module.exports = (robot) ->
     robot.respond ///get\s+([@!]?#{NAME})$///,                      (res) -> get    robot, res
     robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,         (res) -> set    robot, res
     robot.respond ///command\s+(#{CMD})\s+(.*$)///,                 (res) -> setCMD robot, res
-    robot.respond ///delete\s+(@?#{NAME})$///,                      (res) -> delet  robot, res
+    robot.respond ///delete\s+([@!]?#{NAME})$///,                   (res) -> delet  robot, res
     robot.respond ///cancel$///,                                    (res) -> cancel robot, res
     robot.respond ///list$///,                                      (res) -> list   robot, res
 
