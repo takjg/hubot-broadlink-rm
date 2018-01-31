@@ -4,7 +4,7 @@
 # Configuration:
 #   None
 #
-# Commands:
+# Messages:
 #   hubot learn <code> [n-m] [@<room>]    - Learns IR hex code at <room> and names it <code>.
 #   hubot send [[<wait>]] (<code>[@<room>]|<cmd>)[[<wait>]]*n ...    - Sends IR hex <code> to <room> in <wait> <n> times.
 #   hubot list    - Shows all codes and rooms.
@@ -99,7 +99,7 @@ CODE_AT_N = "(((#{CMD})[(]#{ARG}[)])|((#{CODE})(#{AT})?))(#{REPEAT})?"
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 
-# Commands
+# Messages
 
 sendN = (robot, res) ->
     args  = tokenize res.match[1]
@@ -156,7 +156,6 @@ replicateN = (code, wait, n) ->
 ok = (robot, res, codes) ->
     for code in codes
         return false unless okCode   robot, res, code
-        return false unless okDevice robot, res, code
         return false unless okCmd    robot, res, code
         return false unless okWait          res, code
     true
@@ -164,8 +163,10 @@ ok = (robot, res, codes) ->
 okCode = (robot, res, code) ->
     return true unless code.code?
     hex = getVal robot, code.code
-    res.send "ERROR no such code #{code.code}" unless hex?
-    hex?
+    unless hex?
+        res.send "ERROR no such code #{code.code}"
+        return false
+    okDevice robot, res, code
 
 okCmd = (robot, res, code) ->
     return true unless code.cmd?
@@ -178,7 +179,7 @@ okDevice = (robot, res, code) ->
     if code.room? and not host?
         res.send "ERROR no such room #{code.room}"
         return false
-    device = getDevice { host }
+    device = getDevice { host: host, log: console.log }
     res.send "ERROR device not found #{host}" unless device?
     device?
 
@@ -224,7 +225,7 @@ send_ = (robot, res, code, callback) ->
     host = getVal robot, code.room
     back = (msg) -> res.send msg ; callback()
     if hex?
-        device = getDevice { host }
+        device = getDevice { host: host, log: console.log }
         if device?
             wait res, code, ->
                 buffer = new Buffer hex, 'hex'
