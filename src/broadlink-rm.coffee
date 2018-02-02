@@ -23,7 +23,8 @@
 #       <room> ::= [0-9a-z:]+
 #       <cmd>  ::= [0-9a-z:]+
 #       <body> ::= UNIX commands (A special character '#' is expanded to a sanitized given argument)
-#       <MAC>  ::= [0-9a-f:]+
+#       <hex>  ::= [0-9a-fA-F]+
+#       <MAC>  ::= [0-9a-fA-F:]+
 #       <IP>   ::= [0-9.]+
 #       <wait> ::= [0-9]+[ms|s|m|h|d|second(s)|minute(s)|hour(s)|day(s)|秒|分|時間|日]
 #              - <wait> must be less than or equal to 24 days
@@ -90,7 +91,7 @@ CODE      = NAME
 CMD       = NAME
 AT        = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
-HEX_ADDR  = '[0-9a-f:.]+'
+HEX_ADDR  = '[0-9a-fA-F:.]+'
 WAIT      = '[[(]\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*[\\])]'
 REPEAT    = "(#{WAIT})?\\*(\\d+)"
 ARG       = '([^()]*)'
@@ -155,9 +156,9 @@ replicateN = (code, wait, n) ->
 
 ok = (robot, res, codes) ->
     for code in codes
-        return false unless okCode   robot, res, code
-        return false unless okCmd    robot, res, code
-        return false unless okWait          res, code
+        return false unless okCode robot, res, code
+        return false unless okCmd  robot, res, code
+        return false unless okWait        res, code
     true
 
 okCode = (robot, res, code) ->
