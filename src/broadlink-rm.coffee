@@ -76,26 +76,26 @@
 'use strict'
 
 module.exports = (robot) ->
-    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///,     (res) -> sendN  robot, res
-    robot.respond ///learn\s+(#{CODE})\s*(#{AT})?$///,              (res) -> learn1 robot, res
-    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{AT}))?$///, (res) -> learnN robot, res
-    robot.respond ///get\s+([@!]?#{NAME})$///,                      (res) -> get    robot, res
-    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,         (res) -> set    robot, res
-    robot.respond ///command\s+(#{CMD})\s+(.*$)///,                 (res) -> setCMD robot, res
-    robot.respond ///delete\s+([@!]?#{NAME})$///,                   (res) -> delet  robot, res
-    robot.respond ///cancel$///,                                    (res) -> cancel robot, res
-    robot.respond ///list$///,                                      (res) -> list   robot, res
+    robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///,       (res) -> sendN  robot, res
+    robot.respond ///learn\s+(#{CODE})\s*(#{ROOM})?$///,              (res) -> learn1 robot, res
+    robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{ROOM}))?$///, (res) -> learnN robot, res
+    robot.respond ///get\s+([@!]?#{NAME})$///,                        (res) -> get    robot, res
+    robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,           (res) -> set    robot, res
+    robot.respond ///command\s+(#{CMD})\s+(.*$)///,                   (res) -> setCMD robot, res
+    robot.respond ///delete\s+([@!]?#{NAME})$///,                     (res) -> delet  robot, res
+    robot.respond ///cancel$///,                                      (res) -> cancel robot, res
+    robot.respond ///list$///,                                        (res) -> list   robot, res
 
 NAME      = '[0-9a-z:]+'
 CODE      = NAME
 CMD       = NAME
-AT        = '@' + NAME
+ROOM      = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
 HEX_ADDR  = '[0-9a-fA-F:.]+'
 WAIT      = '[[(]\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*[\\])]'
 REPEAT    = "(#{WAIT})?\\*(\\d+)"
 ARG       = '([^()]*)'
-CODE_AT_N = "(((#{CMD})[(]#{ARG}[)])|((#{CODE})(#{AT})?))(#{REPEAT})?"
+CODE_AT_N = "(((#{CMD})[(]#{ARG}[)])|((#{CODE})(#{ROOM})?))(#{REPEAT})?"
 
 getDevice = require 'homebridge-broadlink-rm/helpers/getDevice'
 learnData = require 'homebridge-broadlink-rm/helpers/learnData'
