@@ -77,7 +77,7 @@
 
 module.exports = (robot) ->
     robot.respond ///send(((\s+#{WAIT})?\s+#{CODE_AT_N})+)$///,       (res) -> sendN  robot, res
-    robot.respond ///learn\s+(#{CODE})\s*(#{ROOM})?$///,              (res) -> learn1 robot, res
+    robot.respond ///learn\s+(#{CODE})\s+(#{ROOM})?$///,              (res) -> learn1 robot, res
     robot.respond ///learn\s+(#{CODE})\s+#{RANGE}(\s+(#{ROOM}))?$///, (res) -> learnN robot, res
     robot.respond ///get\s+([@!]?#{NAME})$///,                        (res) -> get    robot, res
     robot.respond ///set\s+(@?#{NAME})\s+(#{HEX_ADDR})$///,           (res) -> set    robot, res
