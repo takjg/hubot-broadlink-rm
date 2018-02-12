@@ -158,19 +158,20 @@ user>> hubot help                              - Shows usage.
 https://www.npmjs.com/package/hubot-broadlink-rm
 
 ## Credits
-Some parts of the code are from @lprhodes [Homebridge Broadlink RM]
+Some parts of the code are from @lprhodes [Homebridge Broadlink RM] and [broadlinkjs-rm]
 
 His module for the communication is used.
 
 Also the code is inspired by @jor3l [Broadlink RM server for IFTTT]
 
 [Homebridge Broadlink RM]: https://github.com/lprhodes/homebridge-broadlink-rm
+[broadlinkjs-rm]: https://github.com/lprhodes/broadlinkjs-rm
 [Broadlink RM server for IFTTT]: https://github.com/jor3l/broadlinkrm-ifttt
 
 ## LICENSE
 
-Copyright (c) 2017 Tak Jaga
-
 Licensed under the [Apache License, Version 2.0][Apache]
+
+Copyright (c) 2017-2018 Tak Jaga
 
 [Apache]: http://www.apache.org/licenses/LICENSE-2.0
