@@ -85,6 +85,7 @@ module.exports = (robot) ->
     robot.respond ///delete\s+([@!]?#{NAME})$///,                     (res) -> delet  robot, res
     robot.respond ///cancel$///,                                      (res) -> cancel robot, res
     robot.respond ///list$///,                                        (res) -> list   robot, res
+    robot.router.put '/hubot/messages',                          (req, res) -> receive robot, req, res
 
 NAME      = '[0-9a-z:]+'
 CODE      = NAME
@@ -389,3 +390,18 @@ getKeySet = (robot) ->
 setKeySet = (robot, keySet) ->
     str = JSON.stringify(Array.from keySet)
     robot.brain.set '_keys_', str
+
+# WebAPI
+
+{ TextMessage } = require 'hubot/src/message'
+User            = require 'hubot/src/user'
+DUMMY_USER      = new User 12345
+
+receive = (robot, req, res) ->
+    m = req.body.message || req.body.msg
+    if m?
+        msg = new TextMessage DUMMY_USER, m, 'messageId'
+        robot.receive msg, ->
+        res.status(200).send 'OK'
+    else
+        res.status(400).send "Bad Request: Parameter 'message' not found"
