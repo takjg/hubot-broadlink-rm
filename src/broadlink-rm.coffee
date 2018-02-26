@@ -92,8 +92,12 @@ CMD       = NAME
 ROOM      = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
 HEX_ADDR  = '[0-9a-fA-F:.]+'
-WAIT      = '[[(]\\s*(\\d+)\\s*(ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日)\\s*[\\])]'
-REPEAT    = "(#{WAIT})?\\*(\\d+)"
+UNIT      = 'ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日'
+DELAY     = "(\\d+)\\s*(#{UNIT})\\s*後?"
+TIME      = '(\\d{1,2})\\s*[:時]\\s*(((\\d{1,2})\\s*分?)|(半))?'
+WAIT      = "[[(]\\s*((#{DELAY})|(#{TIME}))\\s*[\\])]"
+WAIT_     = "[[(]\\s*#{DELAY}\\s*[\\])]"
+REPEAT    = "(#{WAIT_})?\\*(\\d+)"
 ARG       = '([^()]*)'
 CODE_AT_N = "(((#{CMD})[(]#{ARG}[)])|((#{CODE})(#{ROOM})?))(#{REPEAT})?"
 
@@ -103,8 +107,8 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Messages
 
 sendN = (robot, res) ->
-    args  = tokenize res.match[1]
-    codes = parse args
+    tokens = tokenize res.match[1]
+    codes  = parse tokens
     if ok robot, res, codes
         sendN_ robot, res, codes
 
@@ -112,19 +116,41 @@ tokenize = (str) ->
     re = ///(#{WAIT})|(#{CODE_AT_N})///g
     m[0] while m = re.exec str
 
-parse = (args) ->
+parse = (tokens) ->
     codes = []
     prev  = undefined
-    for a in args
-        if a[0] is '[' or a[0] is '('
-            m = a.match ///#{WAIT}///
-            prev = { wait: Number(m[1]), waitUnit: m[2] }
+    head  = true
+    for t in tokens
+        if t[0] is '[' or t[0] is '('
+            m = t.match ///#{WAIT}///
+            prev = mkWait m, head, t
         else
-            m = a.match ///#{CODE_AT_N}///
+            m = t.match ///#{CODE_AT_N}///
             codes = codes.concat mkCodes(prev, m)
             prev = undefined
+        head = false
     codes[0].head = true
     codes
+
+mkWait = (m, head, token) ->
+    if      m[3]? then { wait: Number(m[3]), waitUnit: m[4] }
+    else if head  then mkTimeWait m
+    else               { error: "ERROR unexpected wait #{token}" }
+
+{ DateTime } = require 'luxon'
+
+mkTimeWait = (m) ->
+    hour   = Number m[6]
+    minute = if m[ 9]? then Number m[9] else
+             if m[10]? then 30          else
+                            0
+    now    = DateTime.local()
+    future = now.set { hour: hour, minute: minute, second: 0, millisecond: 0 }
+    if future < now
+        dHour = now.diff(future, 'hours').hours
+        d     = if dHour <= 12 and hour <= 12 then { hours: 12 } else { days: 1}
+        future = future.plus d
+    { wait: future - now, waitUnit: 'ms', string: future.toString() }
 
 mkCodes = (prev, m) ->
     code      = if prev? then prev else {}
@@ -185,6 +211,7 @@ okDevice = (robot, res, code) ->
     device?
 
 okWait = (res, code) ->
+    ( res.send code.error ; return false ) if code.error?
     w = waitOf code
     return true unless w?
     p = w.millis <= 24 * DAY
@@ -196,7 +223,8 @@ waitOf = (code) ->
     if w?
         u = code.waitUnit
         m = w * millisOf u
-        s = w + u
+        s = code.string
+        s = w + u unless s?
         { millis: m, string: s }
 
 millisOf = (unit) ->
