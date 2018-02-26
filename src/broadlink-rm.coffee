@@ -108,8 +108,8 @@ learnData = require 'homebridge-broadlink-rm/helpers/learnData'
 # Messages
 
 sendN = (robot, res) ->
-    args  = tokenize res.match[1]
-    codes = parse args
+    tokens = tokenize res.match[1]
+    codes  = parse tokens
     if ok robot, res, codes
         sendN_ robot, res, codes
 
@@ -117,26 +117,26 @@ tokenize = (str) ->
     re = ///(#{WAIT})|(#{CODE_AT_N})///g
     m[0] while m = re.exec str
 
-parse = (args) ->
+parse = (tokens) ->
     codes = []
     prev  = undefined
     head  = true
-    for a in args
-        if a[0] is '[' or a[0] is '('
-            m = a.match ///#{WAIT}///
-            prev = mkWait m, head, a
+    for t in tokens
+        if t[0] is '[' or t[0] is '('
+            m = t.match ///#{WAIT}///
+            prev = mkWait m, head, t
         else
-            m = a.match ///#{CODE_AT_N}///
+            m = t.match ///#{CODE_AT_N}///
             codes = codes.concat mkCodes(prev, m)
             prev = undefined
         head = false
     codes[0].head = true
     codes
 
-mkWait = (m, head, a) ->
+mkWait = (m, head, token) ->
     if      m[3]? then { wait: Number(m[3]), waitUnit: m[4] }
     else if head  then mkTimeWait m
-    else               { error: "ERROR unexpected wait #{a}" }
+    else               { error: "ERROR unexpected wait #{token}" }
 
 { DateTime } = require 'luxon'
 
