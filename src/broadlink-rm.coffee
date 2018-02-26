@@ -94,8 +94,8 @@ ROOM      = '@' + NAME
 RANGE     = '(\\d+)-(\\d+)'
 HEX_ADDR  = '[0-9a-fA-F:.]+'
 UNIT      = 'ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日'
-DELAY     = "(\\d+)\\s*(#{UNIT})"
-TIME      = '(\\d{1,2})[:時](((\\d{1,2})分?)|(半))?'
+DELAY     = "(\\d+)\\s*(#{UNIT})\\s*後?"
+TIME      = '(\\d{1,2})\\s*[:時]\\s*(((\\d{1,2})\\s*分?)|(半))?'
 WAIT      = "[[(]\\s*((#{DELAY})|(#{TIME}))\\s*[\\])]"
 WAIT_     = "[[(]\\s*#{DELAY}\\s*[\\])]"
 REPEAT    = "(#{WAIT_})?\\*(\\d+)"
@@ -147,10 +147,11 @@ mkTimeWait = (m) ->
                             0
     now    = DateTime.local()
     future = now.set { hour: hour, minute: minute, second: 0, millisecond: 0 }
-    future = future.plus { days: 1 } if future < now
-    diff   = future - now
-    str    = future.toString()
-    { wait: diff, waitUnit: 'ms', string: str }
+    if future < now
+        dHour = now.diff(future, 'hours').hours
+        d     = if dHour <= 12 and hour <= 12 then { hours: 12 } else { days: 1}
+        future = future.plus d
+    { wait: future - now, waitUnit: 'ms', string: future.toString() }
 
 mkCodes = (prev, m) ->
     code      = if prev? then prev else {}
