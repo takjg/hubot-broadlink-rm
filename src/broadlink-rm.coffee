@@ -95,7 +95,8 @@ HEX_ADDR  = '[0-9a-fA-F:.]+'
 UNIT      = 'ms|s|m|h|d|seconds?|minutes?|hours?|days?|秒|分|時間|日'
 DELAY     = "(\\d+)\\s*(#{UNIT})\\s*後?"
 TIME      = '(\\d{1,2})\\s*[:時]\\s*(((\\d{1,2})\\s*分?)|(半))?'
-WAIT      = "[[(]\\s*((#{DELAY})|(#{TIME}))\\s*[\\])]"
+DIFF      = "([-+])\\s*#{DELAY}"
+WAIT      = "[[(]\\s*((#{DELAY})|(#{TIME}))\\s*(#{DIFF})?\\s*[\\])]"
 WAIT_     = "[[(]\\s*#{DELAY}\\s*[\\])]"
 REPEAT    = "(#{WAIT_})?\\*(\\d+)"
 ARG       = '([^()]*)'
@@ -133,11 +134,20 @@ parse = (tokens) ->
     codes
 
 mkWait = (m, head, token) ->
-    if      m[3]? then mkDelay m, 3
+    if      m[3]? then mkDelayWait m
     else if head  then mkTimeWait m
     else               { error: "ERROR unexpected wait #{token}" }
 
 { DateTime } = require 'luxon'
+
+mkDelayWait = (m) ->
+    delay = mkDelay m, 3
+    return delay if delay.error?
+    diff  = getDiff m, 12
+    return diff if diff.error?
+    ms    = delay.wait    + diff.wait
+    str   = delay.waitStr + diff.waitStr
+    { wait: ms, waitStr: str }
 
 mkDelay = (m, index) ->
     n    = Number m[index    ]
@@ -162,18 +172,30 @@ MIN  = 60 * SEC
 HOUR = 60 * MIN
 DAY  = 24 * HOUR
 
+getDiff = (m, index) ->
+    return { wait: 0, waitStr: '' } unless m[index]?
+    sign  = m[index]
+    delay = mkDelay m, index + 1
+    return delay if delay.error?
+    ms    = delay.wait
+    ms    = - ms if sign is '-'
+    { wait: ms, waitStr: " #{sign} #{delay.waitStr}" }
+
 mkTimeWait = (m) ->
     hour   = Number m[6]
     minute = if m[ 9]? then Number m[9] else
              if m[10]? then 30          else
                             0
+    diff   = getDiff m, 12
+    return diff if diff.error?
     now    = DateTime.local()
     future = now.set { hour: hour, minute: minute, second: 0, millisecond: 0 }
+    future = future.plus { milliseconds: diff.wait }
     if future < now
         dHour  = now.diff(future, 'hours').hours
         d      = if dHour <= 12 and hour <= 12 then { hours: 12 } else { days: 1}
         future = future.plus d
-    str = future.toString()
+    str = future.minus({ milliseconds: diff.wait }).toString() + diff.waitStr
     { wait: future - now, waitStr: str }
 
 mkCodes = (prev, m) ->
