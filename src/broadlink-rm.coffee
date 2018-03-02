@@ -133,11 +133,34 @@ parse = (tokens) ->
     codes
 
 mkWait = (m, head, token) ->
-    if      m[3]? then { wait: Number(m[3]), waitUnit: m[4] }
+    if      m[3]? then mkDelay m, 3
     else if head  then mkTimeWait m
     else               { error: "ERROR unexpected wait #{token}" }
 
 { DateTime } = require 'luxon'
+
+mkDelay = (m, index) ->
+    n    = Number m[index    ]
+    unit =        m[index + 1]
+    ms   = n * millisOf unit
+    str  = n +          unit
+    if ms <= 24 * DAY
+        { wait: ms, waitStr: str }
+    else
+        { error: "ERROR [#{str}] too long" }
+
+millisOf = (unit) ->
+    switch unit
+        when 'ms'                           then 1
+        when 's', 'second', 'seconds', '秒' then SEC
+        when 'm', 'minute', 'minutes', '分' then MIN
+        when 'h', 'hour',   'hours', '時間' then HOUR
+        when 'd', 'day',    'days',    '日' then DAY
+
+SEC  = 1000
+MIN  = 60 * SEC
+HOUR = 60 * MIN
+DAY  = 24 * HOUR
 
 mkTimeWait = (m) ->
     hour   = Number m[6]
@@ -147,10 +170,11 @@ mkTimeWait = (m) ->
     now    = DateTime.local()
     future = now.set { hour: hour, minute: minute, second: 0, millisecond: 0 }
     if future < now
-        dHour = now.diff(future, 'hours').hours
-        d     = if dHour <= 12 and hour <= 12 then { hours: 12 } else { days: 1}
+        dHour  = now.diff(future, 'hours').hours
+        d      = if dHour <= 12 and hour <= 12 then { hours: 12 } else { days: 1}
         future = future.plus d
-    { wait: future - now, waitUnit: 'ms', string: future.toString() }
+    str = future.toString()
+    { wait: future - now, waitStr: str }
 
 mkCodes = (prev, m) ->
     code      = if prev? then prev else {}
@@ -163,7 +187,7 @@ mkCodes = (prev, m) ->
     replicate code, m
 
 replicate = (code, m) ->
-    wait = { wait: Number(m[10]), waitUnit: m[11] } if m[9]?
+    wait = mkDelay(m, 10) if m[9]?
     n    = Number m[12]
     switch n
         when 0 then code.code = undefined ; [code]
@@ -211,34 +235,9 @@ okDevice = (robot, res, code) ->
     device?
 
 okWait = (res, code) ->
-    ( res.send code.error ; return false ) if code.error?
-    w = waitOf code
-    return true unless w?
-    p = w.millis <= 24 * DAY
-    res.send "ERROR (#{w.string}) too long" unless p
-    p
-
-waitOf = (code) ->
-    w = code.wait
-    if w?
-        u = code.waitUnit
-        m = w * millisOf u
-        s = code.string
-        s = w + u unless s?
-        { millis: m, string: s }
-
-millisOf = (unit) ->
-    switch unit
-        when 'ms'                           then 1
-        when 's', 'second', 'seconds', '秒' then SEC
-        when 'm', 'minute', 'minutes', '分' then MIN
-        when 'h', 'hour',   'hours', '時間' then HOUR
-        when 'd', 'day',    'days',    '日' then DAY
-
-SEC  = 1000
-MIN  = 60 * SEC
-HOUR = 60 * MIN
-DAY  = 24 * HOUR
+    err = code.error
+    res.send err if err?
+    not err?
 
 sendN_ = (robot, res, codes) ->
     repeat codes, (code, callback) ->
@@ -284,10 +283,10 @@ sanitize = (str) ->
     str.replace /[\0-/:-@[-`{-\xff]/g, ' '
 
 wait = (res, code, callback) ->
-    w = waitOf code
-    if w?
-        res.send "wait #{w.string}"
-        wait_ w.millis, callback
+    millis = code.wait
+    if millis?
+        res.send "wait #{code.waitStr}"
+        wait_ millis, callback
     else
         if code.head
             callback()
