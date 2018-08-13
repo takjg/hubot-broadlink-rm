@@ -324,7 +324,7 @@ wait_ = (millis, callback) ->
     waiting.add timer
 
 clearWait = ->
-    for timer from waiting
+    waiting.forEach (timer) ->
         clearTimeout timer
     waiting.clear()
 
